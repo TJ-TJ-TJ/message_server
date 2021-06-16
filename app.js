@@ -4,7 +4,6 @@ const multer = require("multer");
 const fs = require("fs");
 const pool = require("./pool/pool.js");
 const app = express();
-const buffer = require("buffer").buffer;
 app.all("*", function (req, res, next) {
   //设置允许跨域的域名，*代表允许任意域名跨域
   res.header("Access-Control-Allow-Origin", "*");
@@ -25,6 +24,7 @@ const {
   query
 } = require("./pool/pool.js");
 const e = require("cors");
+const { Date } = require("core-js");
 let server = require("http")
   .createServer(app)
   .listen(9000);
@@ -53,32 +53,27 @@ const upload = multer({
   storage
 });
 
-//总人数
-//消息参数判断
-            // uid:window.sessionStorage.getItem('uid'),//发送者id
-            // sid:that.separateMessage.uid,  //  接收者id
-            // audio:blob, //语音消息,
-            // message:'',  //文本消息
-            // type:'audio/mp3',
-            // head_img:that.myImg,
-            // uname:that.uname,
-            // is_read:0, // text是否已读
-            // send_date:that.$getDate(),
-            // send_time:that.$getTime(),
-            // audio_isRead:0,  //语音是否已读
-            // m_id:Date.now(),  //发送毫秒数 用于排序 和 是否已读
-            // be_uname:that.separateMessage.uname,
-            // be_head_img:that.separateMessage.imgPath
+
+
+io.use((socket, next) => {
+  socket.id = socket.handshake.auth.uid;
+  next();
+});
 
 io.on("connection", (socket) => {
   //转发单发消息
   socket.on("puoToMessage", (data) => {
     socket.to(data.uid).emit('oToMessage','返回错误')
     if (data.type == "audio/mp3") {
+      let dates = Date.now()
+      const ws  = fs.createWriteStream(`./public/audio/${dates}.mp3`)
+      ws.write(data.audio)
+      data.audio = `/audio/${dates}.mp3`
       socket
         .compress(true)
         .to(data.sid)
         .emit("oToMessage", data);
+      
       pool.query(`insert into blobfile set ?`, [data], (err, result1) => {
         if (err) throw err;
       });
@@ -95,7 +90,6 @@ io.on("connection", (socket) => {
   });
 });
 
-
 let e401 = {
   code: 401,
   msg: "参数不完整!",
@@ -107,6 +101,7 @@ let e402 = {
 
 //获取历史记录
 app.get("/getHistoryMsg", (req, res) => {
+  console.log(req.query);
   let data = req.query;
   if (!data.uid) return res.send(e401)
   pool.query(
@@ -170,6 +165,9 @@ app.get("/getHistoryMsg", (req, res) => {
                     if (arr[i].msgArr.length >= 15) {
                       return;
                     }
+                  
+                    // con.audio = con.audio.buffer;
+                    console.log(con.audio);
                     arr[i].msgArr.unshift(con);
                   }
                 });
@@ -201,11 +199,6 @@ app.post("/uploadImg", upload.single("file"), (req, res) => {
   obj["imgPath"] = "/images/" + req.file.filename;
   obj["uname"] = req.body.uname;
   res.send(obj);
-});
-
-io.use((socket, next) => {
-  socket.id = socket.handshake.auth.uid;
-  next();
 });
 
 
