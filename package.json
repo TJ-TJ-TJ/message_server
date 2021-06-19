@@ -7,10 +7,7 @@
   },
   "dependencies": {
     "cookie-parser": "~1.4.4",
-<<<<<<< HEAD
     "core-js": "^3.14.0",
-=======
->>>>>>> 502a09d967bc2e9560a3dc7714a87c5fff68d7e8
     "cors": "^2.8.5",
     "debug": "~2.6.9",
     "express": "~4.16.1",

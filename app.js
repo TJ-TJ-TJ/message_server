@@ -27,11 +27,7 @@ const e = require("cors");
 const { Date } = require("core-js");
 let server = require("http")
   .createServer(app)
-<<<<<<< HEAD
   .listen(9000,()=>console.log('9000-端口服务器-启动成功'));
-=======
-  .listen(9000);
->>>>>>> 502a09d967bc2e9560a3dc7714a87c5fff68d7e8
 var io = require("socket.io")(server);
 
 pool.query("select * from users", (err, data) => {
@@ -65,26 +61,17 @@ io.use((socket, next) => {
 });
 
 io.on("connection", (socket) => {
-<<<<<<< HEAD
   console.log(socket.id)
   //转发单发消息
   socket.on("puoToMessage", (data) => {
     // console.log(data.uid,data.sid)
     console.log(data)
-=======
-  //转发单发消息
-  socket.on("puoToMessage", (data) => {
->>>>>>> 502a09d967bc2e9560a3dc7714a87c5fff68d7e8
     socket.to(data.uid).emit('oToMessage','返回错误')
     if (data.type == "audio/mp3") {
       let dates = Date.now()
       const ws  = fs.createWriteStream(`./public/audio/${dates}.mp3`)
       ws.write(data.audio)
-<<<<<<< HEAD
       data.audio = `http://localhost:9000/audio/${dates}.mp3`
-=======
-      data.audio = `/audio/${dates}.mp3`
->>>>>>> 502a09d967bc2e9560a3dc7714a87c5fff68d7e8
       socket
         .compress(true)
         .to(data.sid)
@@ -115,11 +102,7 @@ let e402 = {
   msg: "失败,参数错误!",
 }
 
-<<<<<<< HEAD
 //获取历史记录  消息列表 传入当前用户的id 格式 uid=xxx
-=======
-//获取历史记录
->>>>>>> 502a09d967bc2e9560a3dc7714a87c5fff68d7e8
 app.get("/getHistoryMsg", (req, res) => {
   console.log(req.query);
   let data = req.query;
@@ -228,10 +211,6 @@ app.post("/uploadImg", upload.single("file"), (req, res) => {
 //列表点击后，，把所有未读状态清空
 app.post("/updateMsgRead", (req, res) => {
   let data = req.body
-<<<<<<< HEAD
-=======
-  console.log(data);
->>>>>>> 502a09d967bc2e9560a3dc7714a87c5fff68d7e8
   if(!data.uid || !data.sid )return res.send(e401)
   try {
     let data = req.body;
@@ -265,10 +244,7 @@ app.post('/updateVoiceRead', (req, res) => {
     pool.query(`update blobfile set audio_isRead=1 
     where uid=${data.uid} and 
     sid=${data.sid} and m_id=${data.m_id}`, (err, result1) => {
-<<<<<<< HEAD
       console.log('111')
-=======
->>>>>>> 502a09d967bc2e9560a3dc7714a87c5fff68d7e8
       try{
         if (err) throw 402
         return res.send({
@@ -300,33 +276,21 @@ app.post('/updateVoiceRead', (req, res) => {
 //    sid:623242699311,
 //    m_id:1623307663500,
 //    currentPage:15,
-<<<<<<< HEAD
 //     pageSize     当前页码
 // }
 app.get('/getHistoryPage',(req,res)=>{
   let data = req.query
   console.log(data)
-=======
-// }
-app.get('/getHistoryPage',(req,res)=>{
-  let data = req.query
->>>>>>> 502a09d967bc2e9560a3dc7714a87c5fff68d7e8
   if(!data.uid || !data.sid || !data.m_id || !data.pageSize){
     return res.send(e401)
   }
   pool.query(`select * from 
   (select * from blobfile where ((uid=${data.uid} and sid=${data.sid}) 
   or (uid=${data.sid} and sid=${data.uid}))
-<<<<<<< HEAD
   ) as temp where temp.m_id<${data.m_id} ORDER BY temp.m_id DESC limit 0,15;
   `,(err,result1)=>{
       if(err) return res.send(e402)
  
-=======
-  ) as temp where temp.m_id<${data.m_id} limit ${(data.pageSize-1)*15},15;
-  `,(err,result1)=>{
-      if(err) return res.send(e402)
->>>>>>> 502a09d967bc2e9560a3dc7714a87c5fff68d7e8
       res.send({
         code:200,
         msg:'获取成功',
