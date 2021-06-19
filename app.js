@@ -64,6 +64,8 @@ io.on("connection", (socket) => {
   console.log(socket.id)
   //转发单发消息
   socket.on("puoToMessage", (data) => {
+    // console.log(data.uid,data.sid)
+    console.log(data)
     socket.to(data.uid).emit('oToMessage','返回错误')
     if (data.type == "audio/mp3") {
       let dates = Date.now()
