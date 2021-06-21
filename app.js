@@ -4,35 +4,34 @@ const multer = require("multer");
 const fs = require("fs");
 const pool = require("./pool/pool.js");
 const app = express();
+
 app.all("*", function (req, res, next) {
+  const headers = req.headers
   //设置允许跨域的域名，*代表允许任意域名跨域
   res.header("Access-Control-Allow-Origin", "*");
-  //允许的header类型
-  res.header("Access-Control-Allow-Headers", "content-type");
-  //跨域允许的请求方式
-  res.header("Access-Control-Allow-Methods", "DELETE,PUT,POST,GET,OPTIONS");
-  if (req.method.toLowerCase() == "options") res.send(200);
-  //让options尝试请求快速结束
-  else next();
+  
+  if (req.method.toLowerCase() == "options") {
+    //允许的header类型
+    res.header("Access-Control-Allow-Headers", headers['Access-Control-Request-Headers'] || headers['access-control-request-headers']);
+    //跨域允许的请求方式
+    res.header("Access-Control-Allow-Methods", "DELETE,PUT,POST,GET,OPTIONS");
+    res.header('Access-Control-Max-Age', 7*24*60*60)
+    res.end()
+  } else {
+    next();
+  }
 });
 
 const bodyParser = require("body-parser");
-const {
-  disconnect
-} = require("process");
-const {
-  query
-} = require("./pool/pool.js");
+
 const e = require("cors");
 const { Date } = require("core-js");
 let server = require("http")
   .createServer(app)
-  .listen(9000,()=>console.log('9000-端口服务器-启动成功'));
+  .listen(9000,()=>{
+    // console.log('9000-端口服务器-启动成功')
+  });
 var io = require("socket.io")(server);
-
-pool.query("select * from users", (err, data) => {
-  // console.log(data);
-});
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
   extended: false
@@ -61,11 +60,11 @@ io.use((socket, next) => {
 });
 
 io.on("connection", (socket) => {
-  console.log(socket.id)
+  // console.log(socket.id)
   //转发单发消息
   socket.on("puoToMessage", (data) => {
     // console.log(data.uid,data.sid)
-    console.log(data)
+    // console.log(data)
     socket.to(data.uid).emit('oToMessage','返回错误')
     if (data.type == "audio/mp3") {
       let dates = Date.now()
@@ -104,7 +103,7 @@ let e402 = {
 
 //获取历史记录  消息列表 传入当前用户的id 格式 uid=xxx
 app.get("/getHistoryMsg", (req, res) => {
-  console.log(req.query);
+  // console.log(req.query);
   let data = req.query;
   if (!data.uid) return res.send(e401)
   pool.query(
@@ -119,7 +118,7 @@ app.get("/getHistoryMsg", (req, res) => {
           let filter = [...SetFilter];
     
           filter.splice(filter.indexOf(data.uid), 1);
-          console.log(filter);
+          // console.log(filter);
           let arr = [];
           //把聊过天的人都筛选出来
           filter.forEach((e, i) => {
@@ -170,7 +169,7 @@ app.get("/getHistoryMsg", (req, res) => {
                     }
                   
                     // con.audio = con.audio.buffer;
-                    console.log(con.audio);
+                    // console.log(con.audio);
                     arr[i].msgArr.unshift(con);
                   }
                 });
@@ -196,7 +195,7 @@ app.get("/getHistoryMsg", (req, res) => {
 
 //添加人员信息
 app.post("/uploadImg", upload.single("file"), (req, res) => {
-  console.log("进入");
+  // console.log("进入");
   let obj = {};
   obj["uid"] = req.body.uid;
   obj["imgPath"] = "/images/" + req.file.filename;
@@ -244,7 +243,7 @@ app.post('/updateVoiceRead', (req, res) => {
     pool.query(`update blobfile set audio_isRead=1 
     where uid=${data.uid} and 
     sid=${data.sid} and m_id=${data.m_id}`, (err, result1) => {
-      console.log('111')
+      // console.log('111')
       try{
         if (err) throw 402
         return res.send({
@@ -280,14 +279,14 @@ app.post('/updateVoiceRead', (req, res) => {
 // }
 app.get('/getHistoryPage',(req,res)=>{
   let data = req.query
-  console.log(data)
+  // console.log(data)
   if(!data.uid || !data.sid || !data.m_id || !data.pageSize){
     return res.send(e401)
   }
   pool.query(`select * from 
   (select * from blobfile where ((uid=${data.uid} and sid=${data.sid}) 
   or (uid=${data.sid} and sid=${data.uid}))
-  ) as temp where temp.m_id<${data.m_id} ORDER BY temp.m_id DESC limit 0,15;
+  ) as temp where temp.m_id<${data.m_id} ORDER BY temp.m_id DESC limit 0,14;
   `,(err,result1)=>{
       if(err) return res.send(e402)
  
