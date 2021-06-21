@@ -107,7 +107,7 @@ app.get("/getHistoryMsg", (req, res) => {
   let data = req.query;
   if (!data.uid) return res.send(e401)
   pool.query(
-    `select uid,sid from blobfile where uid=${data.uid} or sid=${data.uid} GROUP BY uid,sid`,
+    `select uid,sid from blobfile where uid='${data.uid}' or sid='${data.uid}' GROUP BY uid,sid`,
     (err, result1) => {
         try{
           let SetFilter = new Set();
@@ -139,7 +139,7 @@ app.get("/getHistoryMsg", (req, res) => {
             }
           });
           // console.log(object); 
-          pool.query(`select * from blobfile where uid=${data.uid} or sid=${data.uid} order by m_id DESC`, (err, result2) => {
+          pool.query(`select * from blobfile where uid='${data.uid}' or sid='${data.uid}' order by m_id DESC`, (err, result2) => {
             try {
               arr.forEach((by, i) => {
                 result2.forEach((con) => {
@@ -193,18 +193,6 @@ app.get("/getHistoryMsg", (req, res) => {
   );
 });
 
-//添加人员信息
-app.post("/uploadImg", upload.single("file"), (req, res) => {
-  // console.log("进入");
-  let obj = {};
-  obj["uid"] = req.body.uid;
-  obj["imgPath"] = "/images/" + req.file.filename;
-  obj["uname"] = req.body.uname;
-  res.send(obj);
-});
-
-
-
 //未读消息更改为已读
 //根据 用户的uid 和 目标 sid 更 改当前的状态把 未读 更改为已读 0：未读  1：已读
 //列表点击后，，把所有未读状态清空
@@ -214,7 +202,7 @@ app.post("/updateMsgRead", (req, res) => {
   try {
     let data = req.body;
     pool.query(
-      `update blobfile set is_read=1 where uid ='${data.uid}' and sid = ${data.sid};`,
+      `update blobfile set is_read=1 where uid ='${data.uid}' and sid = '${data.sid}';`,
       (err, result1) => {
         try{
             if (err) throw 402;
@@ -241,8 +229,8 @@ app.post('/updateVoiceRead', (req, res) => {
     let data = req.body;
     if (!data.uid || !data.sid || !data.m_id) throw 401;
     pool.query(`update blobfile set audio_isRead=1 
-    where uid=${data.uid} and 
-    sid=${data.sid} and m_id=${data.m_id}`, (err, result1) => {
+    where uid='${data.uid}' and 
+    sid='${data.sid}' and m_id='${data.m_id}'`, (err, result1) => {
       // console.log('111')
       try{
         if (err) throw 402
@@ -284,9 +272,9 @@ app.get('/getHistoryPage',(req,res)=>{
     return res.send(e401)
   }
   pool.query(`select * from 
-  (select * from blobfile where ((uid=${data.uid} and sid=${data.sid}) 
-  or (uid=${data.sid} and sid=${data.uid}))
-  ) as temp where temp.m_id<${data.m_id} ORDER BY temp.m_id DESC limit 0,14;
+  (select * from blobfile where ((uid='${data.uid}' and sid='${data.sid}') 
+  or (uid='${data.sid}' and sid='${data.uid}'))
+  ) as temp where temp.m_id<'${data.m_id}' ORDER BY temp.m_id DESC limit 0,14;
   `,(err,result1)=>{
       if(err) return res.send(e402)
  
