@@ -214,7 +214,7 @@ app.post("/updateMsgRead", (req, res) => {
   try {
     let data = req.body;
     pool.query(
-      `update blobfile set is_read=1 where uid =${data.uid} and sid = ${data.sid};`,
+      `update blobfile set is_read=1 where uid ='${data.uid}' and sid = ${data.sid};`,
       (err, result1) => {
         try{
             if (err) throw 402;
