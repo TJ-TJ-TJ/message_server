@@ -285,3 +285,26 @@ app.get('/getHistoryPage',(req,res)=>{
       })
   })
 })
+
+// 管理员登录接口
+app.post('/login', (req, res, next)=>{
+  let obj = req.body
+  const sql = 'select * from admin where uname=? and upwd=?'
+  pool.query(sql, [obj.uname, obj.upwd], (err, result)=>{
+    if(err) return res.send(e402)
+    if(result.length!==1) {
+      return res.send({
+        code: 201,
+        msg: '密码错误',
+        data:{}
+      })
+    }else {
+      return res.send({
+        code: 200,
+        msg: 'ok',
+        data: result
+      })
+    }
+  })
+})
+
